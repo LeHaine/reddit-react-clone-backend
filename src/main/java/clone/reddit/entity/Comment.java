@@ -1,15 +1,20 @@
 package clone.reddit.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
+import java.util.List;
 
 /**
  * Created by colt on 7/8/18.
  */
 @Entity
-@Table(name = "comments")
+@Table(name = "comment")
+@Getter
+@Setter
 public class Comment extends AuditModel {
 
 
@@ -21,19 +26,23 @@ public class Comment extends AuditModel {
     @NotBlank
     private String text;
 
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
+    @OneToMany(mappedBy = "parent")
+    private List<Comment> children;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "thread_id", nullable = false)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "post_id", nullable = false)
     @JsonIgnore
-    private Thread thread;
+    private Post post;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name="user_id", nullable = false)
+    @OneToMany(mappedBy = "comment")
+    private List<Vote> votes;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "account_id", nullable = false)
     @JsonIgnore
-    private User user;
+    private Account account;
 }

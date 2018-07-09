@@ -1,6 +1,7 @@
 package clone.reddit.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -12,6 +13,7 @@ import java.util.Date;
 /**
  * Created by colt on 7/8/18.
  */
+@Getter
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(value = {"createdAt", "updatedAt"}, allowGetters = true)
@@ -26,12 +28,4 @@ public abstract class AuditModel implements Serializable {
     @Column(name="updated_at", nullable = false)
     @LastModifiedDate
     private Date updatedAt;
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
 }
