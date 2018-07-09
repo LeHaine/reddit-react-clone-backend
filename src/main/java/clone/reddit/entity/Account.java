@@ -1,5 +1,7 @@
 package clone.reddit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -8,7 +10,7 @@ import javax.validation.constraints.Size;
  * Created by colt on 7/8/18.
  */
 @Entity
-@Table(name = "USERS")
+@Table(name = "account")
 public class User extends AuditModel {
 
     @Id
@@ -16,12 +18,15 @@ public class User extends AuditModel {
     @SequenceGenerator(name = "user_generator", sequenceName = "user_seq", initialValue = 1000)
     private long id;
 
+
+    @Column(unique = true)
     @NotBlank
     @Size(min = 3, max = 20)
     private String username;
 
+    @Lob
     @NotBlank
-    @Size(min = 5, max = 50)
+    @JsonIgnore
     private String password;
 
     public User() {
@@ -55,26 +60,6 @@ public class User extends AuditModel {
 
     public void setPassword(String password) {
         this.password = password;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        User user = (User) o;
-
-        if (id != user.id) return false;
-        if (!username.equals(user.username)) return false;
-        return password.equals(user.password);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = (int) (id ^ (id >>> 32));
-        result = 31 * result + username.hashCode();
-        result = 31 * result + password.hashCode();
-        return result;
     }
 
     @Override

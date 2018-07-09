@@ -1,16 +1,15 @@
 package clone.reddit.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.util.List;
 
 /**
  * Created by colt on 7/8/18.
  */
 @Entity
-@Table(name = "THREADS")
+@Table(name = "thread")
 public class Thread extends AuditModel {
 
     @Id
@@ -30,21 +29,18 @@ public class Thread extends AuditModel {
 
     private String content;
 
-    private long upvotes;
+    @OneToMany(mappedBy = "thread")
+    private List<Vote> votes;
 
-    private long downvotes;
+    @OneToMany(mappedBy = "thread")
+    private List<Comment> comments;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "account_id", nullable = false)
+    private Account account;
 
     public Thread() {
 
-    }
-
-    public Thread(@NotBlank @Size(max = 256) String title, User user) {
-        this.title = title;
-        this.user = user;
     }
 
     public Long getId() {
@@ -87,27 +83,39 @@ public class Thread extends AuditModel {
         this.content = content;
     }
 
-    public long getUpvotes() {
-        return upvotes;
+    public List<Vote> getVotes() {
+        return votes;
     }
 
-    public void setUpvotes(long upvotes) {
-        this.upvotes = upvotes;
+    public void setVotes(List<Vote> votes) {
+        this.votes = votes;
     }
 
-    public long getDownvotes() {
-        return downvotes;
+    public List<Comment> getComments() {
+        return comments;
     }
 
-    public void setDownvotes(long downvotes) {
-        this.downvotes = downvotes;
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
-    public User getUser() {
-        return user;
+    public Account getAccount() {
+        return account;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    @Override
+    public String toString() {
+        return "Thread{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", type='" + type + '\'' +
+                ", sub='" + sub + '\'' +
+                ", content='" + content + '\'' +
+                ", account=" + account.getUsername() +
+                '}';
     }
 }
