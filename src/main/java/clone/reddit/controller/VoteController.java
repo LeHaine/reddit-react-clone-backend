@@ -24,18 +24,18 @@ public class VoteController {
     private VoteRepository voteRepository;
 
 
-    @PostMapping("/votes")
+    @PostMapping("/vote")
     public Vote createVote(@Valid @RequestBody Vote vote) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsernameAndPassword(userDetails.getUsername(), userDetails.getPassword());
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Account account = accountRepository.findUserByUsername(username);
         vote.setAccount(account);
         return voteRepository.save(vote);
     }
 
-    @PutMapping("/votes/{voteId}")
+    @PutMapping("/vote/{voteId}")
     public Vote updateVote(@PathVariable Long voteId, @Valid @RequestBody Vote voteRequest) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsernameAndPassword(userDetails.getUsername(), userDetails.getPassword());
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Account account = accountRepository.findUserByUsername(username);
         return voteRepository.findById(voteId).map(vote -> {
             if(vote.getAccount().equals(account)) {
                 vote.setFlag(voteRequest.getFlag());

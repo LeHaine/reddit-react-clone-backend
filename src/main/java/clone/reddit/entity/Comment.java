@@ -43,6 +43,5 @@ public class Comment extends AuditModel {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "account_id", nullable = false)
-    @JsonIgnore
     private Account account;
 }

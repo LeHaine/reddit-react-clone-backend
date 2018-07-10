@@ -2,8 +2,11 @@ package clone.reddit.controller;
 
 import clone.reddit.entity.Account;
 import clone.reddit.entity.Post;
+import clone.reddit.entity.Sub;
 import clone.reddit.repository.AccountRepository;
 import clone.reddit.repository.PostRepository;
+import clone.reddit.repository.SubRepository;
+import clone.reddit.repository.VoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +14,6 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -24,13 +26,21 @@ public class PostController {
 
     @Autowired
     private AccountRepository accountRepository;
-
+    @Autowired
+    private SubRepository subRepository;
     @Autowired
     private PostRepository postRepository;
+    @Autowired
+    private VoteRepository voteRepository;
 
     @GetMapping("/post")
     public Page<Post> getAllThreads(Pageable pageable) {
-        return postRepository.findAll(pageable);
+        return postRepository.findAll(pageable).map(post -> {
+            long upvotes = voteRepository.countByFlagAndPost(1, post);
+            long downvotes = voteRepository.countByFlagAndPost(-1, post);
+            post.setGrossVotes(Math.max(upvotes - downvotes, 0));
+            return post;
+        });
     }
 
     @GetMapping("/post/{postId}")
@@ -40,18 +50,20 @@ public class PostController {
 
     @PostMapping("/post")
     public Post createPost(@Valid @RequestBody Post post) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsernameAndPassword(userDetails.getUsername(), userDetails.getPassword());
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Account account = accountRepository.findUserByUsername(username);
+        Sub sub = subRepository.findByName(post.getSub().getName());
+        post.setSub(sub);
         post.setAccount(account);
         return postRepository.save(post);
     }
 
     @PutMapping("/post/{postId}")
     public Post updatePost(@PathVariable Long postId, @Valid @RequestBody Post postRequest) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsernameAndPassword(userDetails.getUsername(), userDetails.getPassword());
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Account account = accountRepository.findUserByUsername(username);
         return postRepository.findById(postId).map(post -> {
-            if(postRequest.getAccount().equals(account)) {
+            if (postRequest.getAccount().equals(account)) {
                 post.setContent(postRequest.getContent());
                 return postRepository.save(post);
             }
@@ -61,10 +73,10 @@ public class PostController {
 
     @DeleteMapping("/post/{postId}")
     public ResponseEntity<?> deletePost(@PathVariable Long postId) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsernameAndPassword(userDetails.getUsername(), userDetails.getPassword());
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Account account = accountRepository.findUserByUsername(username);
         return postRepository.findById(postId).map(post -> {
-            if(post.getAccount().equals(account)) {
+            if (post.getAccount().equals(account)) {
                 postRepository.delete(post);
                 return ResponseEntity.ok().build();
             }

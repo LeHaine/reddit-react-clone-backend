@@ -5,9 +5,12 @@ import clone.reddit.entity.Sub;
 import clone.reddit.repository.AccountRepository;
 import clone.reddit.repository.SubRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 /**
  * Created by colt on 7/9/18.
@@ -21,23 +24,23 @@ public class SubController {
     @Autowired
     private SubRepository subRepository;
 
+
+    @GetMapping("/sub")
+    public Page<Sub> getAllSubs(Pageable pageable) {
+        return subRepository.findAll(pageable);
+    }
+
+
     @GetMapping("/sub/{name}")
     public Sub getSubByName(@PathVariable String name) {
         return subRepository.findByName(name);
     }
 
     @PostMapping("/sub")
-    public Sub createSub(@RequestParam String name) {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsernameAndPassword(userDetails.getUsername(), userDetails.getPassword());
-        if(account != null) {
-            Sub sub = new Sub();
-            sub.setName(name);
-            sub.setOwner(account);
-            return subRepository.save(sub);
-        }
-
-        //TODO implement error handling
-        return null;
+    public Sub createSub(@Valid @RequestBody Sub sub) {
+        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Account account = accountRepository.findUserByUsername(username);
+        sub.setOwner(account);
+        return subRepository.save(sub);
     }
 }

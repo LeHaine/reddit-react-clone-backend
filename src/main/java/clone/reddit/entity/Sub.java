@@ -1,5 +1,8 @@
 package clone.reddit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +18,9 @@ import java.util.List;
 @Table(name = "sub")
 @Getter
 @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id")
 public class Sub extends AuditModel {
 
     @Id
@@ -29,8 +35,10 @@ public class Sub extends AuditModel {
 
 
     @OneToMany(mappedBy = "sub")
+    @JsonIgnore
     private List<Post> posts;
 
+    @ManyToOne
     @JoinColumn(name = "owner_id")
     private Account owner;
 

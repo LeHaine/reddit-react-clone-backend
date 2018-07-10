@@ -1,5 +1,8 @@
 package clone.reddit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +18,9 @@ import java.util.List;
 @Entity
 @Table(name = "post")
 @Getter @Setter
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id")
 public class Post extends AuditModel {
 
     @Id
@@ -37,12 +43,17 @@ public class Post extends AuditModel {
     private String content;
 
     @OneToMany(mappedBy = "post")
+    @JsonIgnore
     private List<Vote> votes;
 
     @OneToMany(mappedBy = "post")
+    @JsonIgnore
     private List<Comment> comments;
 
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
+
+    @Transient
+    private long grossVotes;
 }
