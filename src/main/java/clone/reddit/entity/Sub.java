@@ -20,12 +20,13 @@ import java.util.List;
 @Setter
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id")
+        property = "name")
 public class Sub extends AuditModel {
 
     @Id
     @GeneratedValue(generator = "sub_generator")
     @SequenceGenerator(name = "sub_generator", sequenceName = "sub_seq", initialValue = 1000)
+    @JsonIgnore
     private Long id;
 
     @Column(unique = true)

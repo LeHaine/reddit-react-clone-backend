@@ -3,8 +3,12 @@ package clone.reddit.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.*;
+import org.hibernate.annotations.Parameter;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
@@ -20,8 +24,9 @@ public class Comment extends AuditModel {
 
     @Id
     @GeneratedValue(generator = "comment_generator")
-    @SequenceGenerator(name = "comment_generator", sequenceName = "comment_seq", initialValue = 1000)
-    private long id;
+    @GenericGenerator(name = "comment_generator", parameters = {@Parameter(name = "prefix", value = "c"), @Parameter(name = "initialValue", value = "1000")},
+            strategy = "clone.reddit.util.Base36IdGenerator")
+    private String id;
 
     @NotBlank
     private String text;

@@ -41,7 +41,7 @@ public class PostController {
     }
 
     @GetMapping("/post/{postId}")
-    public Post getPostById(@PathVariable Long postId) {
+    public Post getPostById(@PathVariable String postId) {
         return postRepository.findById(postId).map(this::getPostVoteInfo).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
     }
 
@@ -74,7 +74,7 @@ public class PostController {
     }
 
     @PutMapping("/post/{postId}")
-    public Post updatePost(@PathVariable Long postId, @Valid @RequestBody Post postRequest) {
+    public Post updatePost(@PathVariable String postId, @Valid @RequestBody Post postRequest) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Account account = accountRepository.findUserByUsername(username);
         return postRepository.findById(postId).map(post -> {
@@ -87,7 +87,7 @@ public class PostController {
     }
 
     @DeleteMapping("/post/{postId}")
-    public ResponseEntity<?> deletePost(@PathVariable Long postId) {
+    public ResponseEntity<?> deletePost(@PathVariable String postId) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Account account = accountRepository.findUserByUsername(username);
         return postRepository.findById(postId).map(post -> {

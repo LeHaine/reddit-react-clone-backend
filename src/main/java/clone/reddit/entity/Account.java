@@ -1,5 +1,6 @@
 package clone.reddit.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public class Account extends AuditModel {
     @Id
     @GeneratedValue(generator = "account_generator")
     @SequenceGenerator(name = "account_generator", sequenceName = "account_seq", initialValue = 1000)
+    @JsonIgnore
     private long id;
 
 
