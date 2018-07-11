@@ -3,6 +3,7 @@ package clone.reddit.controller;
 import clone.reddit.entity.Account;
 import clone.reddit.entity.Post;
 import clone.reddit.entity.Sub;
+import clone.reddit.entity.Vote;
 import clone.reddit.repository.AccountRepository;
 import clone.reddit.repository.PostRepository;
 import clone.reddit.repository.SubRepository;
@@ -17,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Arrays;
 
 /**
  * Created by colt on 7/8/18.
@@ -35,17 +37,30 @@ public class PostController {
 
     @GetMapping("/post")
     public Page<Post> getAllThreads(Pageable pageable) {
-        return postRepository.findAll(pageable).map(post -> {
-            long upvotes = voteRepository.countByFlagAndPost(1, post);
-            long downvotes = voteRepository.countByFlagAndPost(-1, post);
-            post.setGrossVotes(Math.max(upvotes - downvotes, 0));
-            return post;
-        });
+        return postRepository.findAll(pageable).map(this::getPostVoteInfo);
     }
 
     @GetMapping("/post/{postId}")
     public Post getPostById(@PathVariable Long postId) {
-        return postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
+        return postRepository.findById(postId).map(this::getPostVoteInfo).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
+    }
+
+    private Post getPostVoteInfo(Post post) {
+        long upvotes = voteRepository.countByFlagAndPost(1, post);
+        long downvotes = voteRepository.countByFlagAndPost(-1, post);
+        post.setGrossVotes(Math.max(upvotes - downvotes, 0));
+        boolean isAuthed = SecurityContextHolder.getContext().getAuthentication().isAuthenticated();
+        if(isAuthed) {
+            String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Account account = accountRepository.findUserByUsername(username);
+            Vote vote = voteRepository.findByPostAndAccount(post, account);
+            int flag = 0;
+            if(vote != null) {
+                flag = vote.getFlag();
+            }
+            post.setVoteFlag(flag);
+        }
+        return post;
     }
 
     @PostMapping("/post")

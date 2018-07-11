@@ -33,11 +33,6 @@ public class Sub extends AuditModel {
     @Size(max = 30)
     private String name;
 
-
-    @OneToMany(mappedBy = "sub")
-    @JsonIgnore
-    private List<Post> posts;
-
     @ManyToOne
     @JoinColumn(name = "owner_id")
     private Account owner;

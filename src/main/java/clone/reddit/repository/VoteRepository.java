@@ -1,5 +1,6 @@
 package clone.reddit.repository;
 
+import clone.reddit.entity.Account;
 import clone.reddit.entity.Post;
 import clone.reddit.entity.Vote;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,5 +11,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
     long countByFlagAndPost(int flag, Post post);
+    Vote findByPostAndAccount(Post post, Account account);
 
 }

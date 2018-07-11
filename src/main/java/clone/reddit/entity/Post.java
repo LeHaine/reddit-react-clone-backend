@@ -42,17 +42,12 @@ public class Post extends AuditModel {
 
     private String content;
 
-    @OneToMany(mappedBy = "post")
-    @JsonIgnore
-    private List<Vote> votes;
-
-    @OneToMany(mappedBy = "post")
-    @JsonIgnore
-    private List<Comment> comments;
-
     @ManyToOne
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
+
+    @Transient
+    private int voteFlag;
 
     @Transient
     private long grossVotes;
