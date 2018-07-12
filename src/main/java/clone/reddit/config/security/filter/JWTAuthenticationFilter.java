@@ -62,5 +62,7 @@ public class JWTAuthenticationFilter extends AbstractAuthenticationProcessingFil
                 .signWith(SignatureAlgorithm.HS512, SECRET.getBytes())
                 .compact();
         res.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+        String user = ((User) auth.getPrincipal()).getUsername();
+        res.getWriter().write("{\"username\": \"" + user + "\"}");
     }
 }
