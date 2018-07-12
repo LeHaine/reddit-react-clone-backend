@@ -18,9 +18,6 @@ import java.util.List;
 @Table(name = "sub")
 @Getter
 @Setter
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "name")
 public class Sub extends AuditModel {
 
     @Id

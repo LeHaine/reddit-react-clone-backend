@@ -19,9 +19,6 @@ import javax.validation.constraints.Size;
 @Table(name = "post")
 @Getter
 @Setter
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id")
 public class Post extends AuditModel {
 
     @Id
@@ -42,6 +39,7 @@ public class Post extends AuditModel {
     @JoinColumn(name = "sub_id")
     private Sub sub;
 
+    @Size(max = 40000)
     private String content;
 
     @ManyToOne
