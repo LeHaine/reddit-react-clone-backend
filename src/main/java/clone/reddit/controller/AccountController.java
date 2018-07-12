@@ -9,6 +9,8 @@ import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 /**
  * Created by colt on 7/9/18.
  */
@@ -33,15 +35,15 @@ public class AccountController {
     }
 
     @PostMapping("/account")
-    public Account createAccount(@RequestParam String username, @RequestParam String password) {
-        Account account = accountRepository.findUserByUsername(username);
+    public Account createAccount(@Valid @RequestBody Account accountRequest) {
+        Account account = accountRepository.findUserByUsername(accountRequest.getUsername());
         if(account != null) {
             //TODO implement error handling
             return null;
         }
-        String encodedPassword = passwordEncoder.encode(password);
+        String encodedPassword = passwordEncoder.encode(accountRequest.getPassword());
         account = new Account();
-        account.setUsername(username);
+        account.setUsername(accountRequest.getUsername());
         account.setPassword(encodedPassword);
 
         return accountRepository.save(account);
