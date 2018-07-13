@@ -30,7 +30,6 @@ public class VoteController {
 
     @PostMapping("/vote")
     public Vote vote(@Valid @RequestBody Vote vote) {
-        System.out.println(vote);
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Account account = accountRepository.findUserByUsername(username);
         Post post = postRepository.findById(vote.getPost().getId()).orElseThrow(() -> new ResourceNotFoundException("PostId " + vote.getPost().getId() + " does not exist"));
