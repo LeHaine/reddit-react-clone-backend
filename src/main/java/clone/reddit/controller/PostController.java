@@ -70,7 +70,13 @@ public class PostController {
         Sub sub = subRepository.findByName(post.getSub().getName());
         post.setSub(sub);
         post.setAccount(account);
-        return postRepository.save(post);
+        Vote vote = new Vote();
+        vote.setFlag(1);
+        Post newPost = postRepository.save(post);
+        vote.setPost(newPost);
+        vote.setAccount(account);
+        voteRepository.save(vote);
+        return newPost;
     }
 
     @PutMapping("/post/{postId}")
