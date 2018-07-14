@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
-    long countByFlagAndPost(int flag, Post post);
-    Vote findByPostAndAccount(Post post, Account account);
+    long countByFlagAndPostId(int flag, String id);
+    Vote findByPostIdAndAccount(String id, Account account);
 
 }

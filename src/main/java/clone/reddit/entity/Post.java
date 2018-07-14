@@ -49,4 +49,7 @@ public class Post extends AuditModel {
 
     @Transient
     private long grossVotes;
+
+    @Transient
+    private long totalComments;
 }

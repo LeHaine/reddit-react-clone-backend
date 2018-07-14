@@ -34,7 +34,7 @@ public class VoteController {
         Account account = accountRepository.findUserByUsername(username);
         Post post = postRepository.findById(vote.getPost().getId()).orElseThrow(() -> new ResourceNotFoundException("PostId " + vote.getPost().getId() + " does not exist"));
         Vote voteRequest = vote;
-        Vote existingVote = voteRepository.findByPostAndAccount(post, account);
+        Vote existingVote = voteRepository.findByPostIdAndAccount(post.getId(), account);
         if(existingVote != null) {
             voteRequest = existingVote;
         }

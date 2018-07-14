@@ -4,10 +4,7 @@ import clone.reddit.entity.Account;
 import clone.reddit.entity.Post;
 import clone.reddit.entity.Sub;
 import clone.reddit.entity.Vote;
-import clone.reddit.repository.AccountRepository;
-import clone.reddit.repository.PostRepository;
-import clone.reddit.repository.SubRepository;
-import clone.reddit.repository.VoteRepository;
+import clone.reddit.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,33 +30,41 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
     @Autowired
+    private CommentRepository commentRepository;
+    @Autowired
     private VoteRepository voteRepository;
 
     @GetMapping("/post")
     public Page<Post> getAllThreads(Pageable pageable) {
-        return postRepository.findAll(pageable).map(this::getPostVoteInfo);
+        return postRepository.findAll(pageable).map(this::getPostDetails);
     }
 
     @GetMapping("/post/{postId}")
     public Post getPostById(@PathVariable String postId) {
-        return postRepository.findById(postId).map(this::getPostVoteInfo).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
+        return postRepository.findById(postId).map(this::getPostDetails).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
     }
 
     private Post getPostVoteInfo(Post post) {
-        long upvotes = voteRepository.countByFlagAndPost(1, post);
-        long downvotes = voteRepository.countByFlagAndPost(-1, post);
+        long upvotes = voteRepository.countByFlagAndPostId(1, post.getId());
+        long downvotes = voteRepository.countByFlagAndPostId(-1, post.getId());
         post.setGrossVotes(Math.max(upvotes - downvotes, 0));
         boolean isAuthed = SecurityContextHolder.getContext().getAuthentication().isAuthenticated();
         if(isAuthed) {
             String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Account account = accountRepository.findUserByUsername(username);
-            Vote vote = voteRepository.findByPostAndAccount(post, account);
+            Vote vote = voteRepository.findByPostIdAndAccount(post.getId(), account);
             int flag = 0;
             if(vote != null) {
                 flag = vote.getFlag();
             }
             post.setVoteFlag(flag);
         }
+        return post;
+    }
+
+    private Post getPostDetails(Post post) {
+        post = getPostVoteInfo(post);
+        post.setTotalComments(commentRepository.countByPostId(post.getId()));
         return post;
     }
 
