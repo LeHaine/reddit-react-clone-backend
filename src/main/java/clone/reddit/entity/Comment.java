@@ -49,4 +49,10 @@ public class Comment extends AuditModel {
     @ManyToOne(optional = false)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
+
+    @Transient
+    private long grossVotes;
+
+    @Transient
+    private long voteFlag;
 }
