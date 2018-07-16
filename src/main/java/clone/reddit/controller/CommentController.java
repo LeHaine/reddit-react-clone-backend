@@ -19,6 +19,7 @@ import javax.validation.Valid;
 /**
  * Created by colt on 7/14/18.
  */
+@RestController
 public class CommentController {
 
     @Autowired
@@ -36,9 +37,20 @@ public class CommentController {
         return commentRepository.findAll(pageable).map(this::getCommentVoteInfo);
     }
 
-    @GetMapping("/comment/commentId")
+    @GetMapping("/comment/{commentId}")
     public Comment getCommentById(@PathVariable String commentId) {
         return commentRepository.findById(commentId).map(this::getCommentVoteInfo).orElseThrow(() -> new ResourceNotFoundException("CommentId " + commentId + " not found"));
+    }
+
+
+    @GetMapping("/comment/post/{postId}")
+    public Page<Comment> getAllCommentsByPostId(@PathVariable String postId, Pageable pageable) {
+        return commentRepository.findByPostId(postId, pageable).map(this::getCommentVoteInfo);
+    }
+
+    @GetMapping("/comment/post/toplevel/{postId}")
+    public Page<Comment> getToplevelCommentsByPostId(@PathVariable String postId, Pageable pageable) {
+        return commentRepository.findByPostIdAndParentIdIsNull(postId, pageable).map(this::getCommentVoteInfo);
     }
 
     private Comment getCommentVoteInfo(Comment comment) {

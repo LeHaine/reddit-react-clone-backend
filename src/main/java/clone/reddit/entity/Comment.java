@@ -1,14 +1,13 @@
 package clone.reddit.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import java.util.List;
 
@@ -33,6 +32,7 @@ public class Comment extends AuditModel {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
+    @JsonIgnore
     private Comment parent;
 
     @OneToMany(mappedBy = "parent")
@@ -40,11 +40,8 @@ public class Comment extends AuditModel {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "post_id", nullable = false)
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Post post;
-
-    @OneToMany(mappedBy = "comment")
-    private List<Vote> votes;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "account_id", nullable = false)

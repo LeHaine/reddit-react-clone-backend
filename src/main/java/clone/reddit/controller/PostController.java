@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
 import java.util.Arrays;
@@ -42,6 +43,16 @@ public class PostController {
     @GetMapping("/post/{postId}")
     public Post getPostById(@PathVariable String postId) {
         return postRepository.findById(postId).map(this::getPostDetails).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
+    }
+
+    @GetMapping("/post/comments/{postId}")
+    public ModelAndView getCommentsByPostId(@PathVariable String postId) {
+        return new ModelAndView("redirect:/comment/post/" + postId);
+    }
+
+    @GetMapping("/post/comments/toplevel/{postId}")
+    public ModelAndView getToplevelCommentsByPostId(@PathVariable String postId) {
+        return new ModelAndView("redirect:/comment/post/toplevel/" + postId);
     }
 
     private Post getPostVoteInfo(Post post) {
