@@ -1,9 +1,10 @@
 package clone.reddit.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import clone.reddit.entity.type.AccountContainingEntity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -18,7 +19,7 @@ import java.util.List;
 @Table(name = "comment")
 @Getter
 @Setter
-public class Comment extends AuditModel {
+public class Comment extends AccountValidatorModel {
 
 
     @Id
@@ -32,14 +33,14 @@ public class Comment extends AuditModel {
 
     @ManyToOne
     @JoinColumn(name = "parent_id")
-    @JsonIgnore
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Comment parent;
 
     @OneToMany(mappedBy = "parent")
     private List<Comment> children;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Post post;
 
@@ -47,9 +48,9 @@ public class Comment extends AuditModel {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @Transient
+    @Formula("(select count(*) from Vote v where v.comment_id = id and v.flag = 1) - (select count(*) from Vote v where v.comment_id = id and v.flag = -1)")
     private long grossVotes;
 
-    @Transient
+    @Formula("COALESCE((select v.flag from Vote v join Account a on v.account_id = a.id where a.username = '{USERNAME}' and v.comment_id = id), 0)")
     private long voteFlag;
 }

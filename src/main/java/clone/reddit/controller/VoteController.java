@@ -35,7 +35,7 @@ public class VoteController {
     @PostMapping("/vote/post")
     public Vote voteOnPost(@Valid @RequestBody Vote vote) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
+        Account account = accountRepository.findByUsername(username);
         Post post = postRepository.findById(vote.getPost().getId()).orElseThrow(() -> new ResourceNotFoundException("PostId " + vote.getPost().getId() + " does not exist"));
         Vote voteRequest = vote;
         Vote existingVote = voteRepository.findByPostIdAndAccount(post.getId(), account);
@@ -49,14 +49,13 @@ public class VoteController {
         } else {
             voteRequest.setFlag(0);
         }
-        voteRequest.setAccount(account);
         return voteRepository.save(voteRequest);
     }
 
     @PostMapping("/vote/comment")
     public Vote voteOnComment(@Valid @RequestBody Vote vote) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
+        Account account = accountRepository.findByUsername(username);
         Comment comment = commentRepository.findById(vote.getComment().getId()).orElseThrow(() -> new ResourceNotFoundException("CommentId " + vote.getComment().getId() + " does not exist"));
         Vote voteRequest = vote;
         Vote existingVote = voteRepository.findByCommentIdAndAccount(comment.getId(), account);
@@ -70,7 +69,6 @@ public class VoteController {
         } else {
             voteRequest.setFlag(0);
         }
-        voteRequest.setAccount(account);
         return voteRepository.save(voteRequest);
     }
 }

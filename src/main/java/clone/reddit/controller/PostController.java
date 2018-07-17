@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
-import java.util.Arrays;
 
 /**
  * Created by colt on 7/8/18.
@@ -31,18 +30,16 @@ public class PostController {
     @Autowired
     private PostRepository postRepository;
     @Autowired
-    private CommentRepository commentRepository;
-    @Autowired
     private VoteRepository voteRepository;
 
     @GetMapping("/post")
     public Page<Post> getAllThreads(Pageable pageable) {
-        return postRepository.findAll(pageable).map(this::getPostDetails);
+        return postRepository.findAll(pageable);
     }
 
     @GetMapping("/post/{postId}")
     public Post getPostById(@PathVariable String postId) {
-        return postRepository.findById(postId).map(this::getPostDetails).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
+        return postRepository.findById(postId).orElseThrow(() -> new ResourceNotFoundException("PostId " + postId + " not found"));
     }
 
     @GetMapping("/post/comments/{postId}")
@@ -55,42 +52,15 @@ public class PostController {
         return new ModelAndView("redirect:/comment/post/toplevel/" + postId);
     }
 
-    private Post getPostVoteInfo(Post post) {
-        long upvotes = voteRepository.countByFlagAndPostId(1, post.getId());
-        long downvotes = voteRepository.countByFlagAndPostId(-1, post.getId());
-        post.setGrossVotes(Math.max(upvotes - downvotes, 0));
-        boolean isAuthed = SecurityContextHolder.getContext().getAuthentication().isAuthenticated();
-        if(isAuthed) {
-            String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Account account = accountRepository.findUserByUsername(username);
-            Vote vote = voteRepository.findByPostIdAndAccount(post.getId(), account);
-            int flag = 0;
-            if(vote != null) {
-                flag = vote.getFlag();
-            }
-            post.setVoteFlag(flag);
-        }
-        return post;
-    }
-
-    private Post getPostDetails(Post post) {
-        post = getPostVoteInfo(post);
-        post.setTotalComments(commentRepository.countByPostId(post.getId()));
-        return post;
-    }
-
     @PostMapping("/post")
     public Post createPost(@Valid @RequestBody Post post) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
         Sub sub = subRepository.findByName(post.getSub().getName());
         post.setSub(sub);
-        post.setAccount(account);
         Vote vote = new Vote();
         vote.setFlag(1);
         Post newPost = postRepository.save(post);
         vote.setPost(newPost);
-        vote.setAccount(account);
         voteRepository.save(vote);
         return newPost;
     }
@@ -98,7 +68,7 @@ public class PostController {
     @PutMapping("/post/{postId}")
     public Post updatePost(@PathVariable String postId, @Valid @RequestBody Post postRequest) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
+        Account account = accountRepository.findByUsername(username);
         return postRepository.findById(postId).map(post -> {
             if (postRequest.getAccount().equals(account)) {
                 post.setContent(postRequest.getContent());
@@ -111,7 +81,7 @@ public class PostController {
     @DeleteMapping("/post/{postId}")
     public ResponseEntity<?> deletePost(@PathVariable String postId) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
+        Account account = accountRepository.findByUsername(username);
         return postRepository.findById(postId).map(post -> {
             if (post.getAccount().equals(account)) {
                 postRepository.delete(post);

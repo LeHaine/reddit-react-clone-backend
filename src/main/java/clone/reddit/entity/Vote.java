@@ -1,5 +1,6 @@
 package clone.reddit.entity;
 
+import clone.reddit.entity.type.AccountContainingEntity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +13,7 @@ import javax.persistence.*;
 @Table(name = "vote")
 @Getter
 @Setter
-public class Vote extends AuditModel {
+public class Vote extends AccountValidatorModel {
 
     @Id
     @GeneratedValue(generator = "vote_generator")

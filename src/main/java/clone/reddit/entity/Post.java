@@ -1,7 +1,9 @@
 package clone.reddit.entity;
 
+import clone.reddit.entity.type.AccountContainingEntity;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
 
@@ -17,7 +19,7 @@ import javax.validation.constraints.Size;
 @Table(name = "post")
 @Getter
 @Setter
-public class Post extends AuditModel {
+public class Post extends AccountValidatorModel {
 
     @Id
     @GeneratedValue(generator = "post_generator")
@@ -44,12 +46,12 @@ public class Post extends AuditModel {
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;
 
-    @Transient
-    private int voteFlag;
-
-    @Transient
+    @Formula("(select count(*) from Vote v where v.post_id = id and v.flag = 1) - (select count(*) from Vote v where v.post_id = id and v.flag = -1)")
     private long grossVotes;
 
-    @Transient
+    @Formula("COALESCE((select v.flag from Vote v join Account a on v.account_id = a.id where a.username = '{USERNAME}' and v.post_id = id), 0)")
+    private long voteFlag;
+
+    @Formula("(select count(*) from Comment c where c.post_id = id)")
     private long totalComments;
 }

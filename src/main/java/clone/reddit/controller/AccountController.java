@@ -36,7 +36,7 @@ public class AccountController {
 
     @PostMapping("/account")
     public Account createAccount(@Valid @RequestBody Account accountRequest) {
-        Account account = accountRepository.findUserByUsername(accountRequest.getUsername());
+        Account account = accountRepository.findByUsername(accountRequest.getUsername());
         if(account != null) {
             //TODO implement error handling
             return null;

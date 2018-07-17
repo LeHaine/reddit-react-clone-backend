@@ -18,9 +18,6 @@ import javax.validation.Valid;
 @RestController
 public class SubController {
 
-
-    @Autowired
-    private AccountRepository accountRepository;
     @Autowired
     private SubRepository subRepository;
 
@@ -38,9 +35,6 @@ public class SubController {
 
     @PostMapping("/sub")
     public Sub createSub(@Valid @RequestBody Sub sub) {
-        String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
-        sub.setOwner(account);
         return subRepository.save(sub);
     }
 }

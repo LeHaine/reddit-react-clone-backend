@@ -34,48 +34,29 @@ public class CommentController {
 
     @GetMapping("/comment")
     public Page<Comment> getAllThreads(Pageable pageable) {
-        return commentRepository.findAll(pageable).map(this::getCommentVoteInfo);
+        return commentRepository.findAll(pageable);
     }
 
     @GetMapping("/comment/{commentId}")
     public Comment getCommentById(@PathVariable String commentId) {
-        return commentRepository.findById(commentId).map(this::getCommentVoteInfo).orElseThrow(() -> new ResourceNotFoundException("CommentId " + commentId + " not found"));
+        return commentRepository.findById(commentId).orElseThrow(() -> new ResourceNotFoundException("CommentId " + commentId + " not found"));
     }
 
 
     @GetMapping("/comment/post/{postId}")
     public Page<Comment> getAllCommentsByPostId(@PathVariable String postId, Pageable pageable) {
-        return commentRepository.findByPostId(postId, pageable).map(this::getCommentVoteInfo);
+        return commentRepository.findByPostId(postId, pageable);
     }
 
     @GetMapping("/comment/post/toplevel/{postId}")
     public Page<Comment> getToplevelCommentsByPostId(@PathVariable String postId, Pageable pageable) {
-        return commentRepository.findByPostIdAndParentIdIsNull(postId, pageable).map(this::getCommentVoteInfo);
+        return commentRepository.findByPostIdAndParentIdIsNull(postId, pageable);
     }
-
-    private Comment getCommentVoteInfo(Comment comment) {
-        long upvotes = voteRepository.countByFlagAndCommentId(1, comment.getId());
-        long downvotes = voteRepository.countByFlagAndCommentId(-1, comment.getId());
-        comment.setGrossVotes(upvotes - downvotes);
-        boolean isAuthed = SecurityContextHolder.getContext().getAuthentication().isAuthenticated();
-        if (isAuthed) {
-            String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Account account = accountRepository.findUserByUsername(username);
-            Vote vote = voteRepository.findByCommentIdAndAccount(comment.getId(), account);
-            int flag = 0;
-            if (vote != null) {
-                flag = vote.getFlag();
-            }
-            comment.setVoteFlag(flag);
-        }
-        return comment;
-    }
-
 
     @PutMapping("/comment/{commentId}")
     public Comment updateComment(@PathVariable String commentId, @Valid @RequestBody Comment commentRequest) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
+        Account account = accountRepository.findByUsername(username);
         return commentRepository.findById(commentId).map(comment -> {
             if (commentRequest.getAccount().equals(account)) {
                 comment.setText(commentRequest.getText());
@@ -88,7 +69,7 @@ public class CommentController {
     @DeleteMapping("/comment/{commentId}")
     public ResponseEntity<?> deleteComment(@PathVariable String commentId) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
+        Account account = accountRepository.findByUsername(username);
         return commentRepository.findById(commentId).map(comment -> {
             if (comment.getAccount().equals(account)) {
                 commentRepository.delete(comment);
@@ -99,17 +80,23 @@ public class CommentController {
     }
 
     @PostMapping("/comment")
-    public Comment createComment(@Valid @RequestBody Comment commentRequest) {
+    public Comment createComment(@RequestParam  String type, @Valid @RequestBody Comment commentRequest) {
         String username = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Account account = accountRepository.findUserByUsername(username);
-        commentRequest.setAccount(account);
-        commentRequest.setPost(postRepository.findById(commentRequest.getPost().getId())
-                .orElseThrow(() -> new ResourceNotFoundException("PostId " + commentRequest.getPost().getId() + " not found")));
+        Account account = accountRepository.findByUsername(username);
+        if(type.equalsIgnoreCase("post")) {
+            commentRequest.setPost(postRepository.findById(commentRequest.getPost().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("PostId " + commentRequest.getPost().getId() + " not found")));
+        } else if (type.equalsIgnoreCase("comment")) {
+            commentRequest.setParent(commentRepository.findById(commentRequest.getParent().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("CommentId " + commentRequest.getParent().getId() + " not found")));
+
+            commentRequest.setPost(postRepository.findById(commentRequest.getParent().getPost().getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("PostId " + commentRequest.getParent().getPost().getId() + " not found")));
+        }
         Vote vote = new Vote();
         vote.setFlag(1);
         Comment comment = commentRepository.save(commentRequest);
         vote.setComment(comment);
-        vote.setAccount(account);
         voteRepository.save(vote);
         return comment;
     }

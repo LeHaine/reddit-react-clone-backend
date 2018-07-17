@@ -1,5 +1,6 @@
 package clone.reddit.entity;
 
+import clone.reddit.entity.type.AccountContainingEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +16,7 @@ import javax.validation.constraints.Size;
 @Table(name = "sub")
 @Getter
 @Setter
-public class Sub extends AuditModel {
+public class Sub extends AccountValidatorModel{
 
     @Id
     @GeneratedValue(generator = "sub_generator")
@@ -27,10 +28,4 @@ public class Sub extends AuditModel {
     @NotBlank
     @Size(max = 30)
     private String name;
-
-    @ManyToOne
-    @JoinColumn(name = "owner_id")
-    private Account owner;
-
-
 }

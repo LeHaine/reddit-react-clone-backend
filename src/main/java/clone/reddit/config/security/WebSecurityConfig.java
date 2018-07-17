@@ -68,7 +68,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                Account account = accountRepository.findUserByUsername(username);
+                Account account = accountRepository.findByUsername(username);
                 if (account != null) {
                     return new org.springframework.security.core.userdetails.User(account.getUsername(), account.getPassword(),
                             true, true, true, true,
